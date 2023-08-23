@@ -9,17 +9,25 @@ TARGET_EXEC ?= a.out
 BUILD_DIR ?= build
 SRC_DIRS ?= src
 INC_DIRS ?= include
+INC_DIRS += /usr/include /usr/include/android
+# export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/lib/x86_64-linux-gnu/android
+LIB_DIRS += /usr/lib/x86_64-linux-gnu/android
+# android-libziparchive-dev android-libbase-dev
+LIBS := ziparchive stdc++fs
 SRC_TYPES := cpp c s
 SRCS := $(foreach dir, $(SRC_DIRS), $(foreach type, $(SRC_TYPES), $(wildcard $(dir)/*.$(type))))
 OBJS := $(addprefix $(BUILD_DIR)/, $(addsuffix .o, $(basename $(SRCS))))
 DEPS := $(OBJS:.o=.d)
 INC_DIRS += $(dir $(SRC_DIRS))
 INC_FLAGS := $(addprefix -I,$(INC_DIRS))
-CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -w -Wextra -Wall
+LIB_FLAGS := $(addprefix -l,$(LIBS))
+LIBPATH_FLAGS := $(addprefix -L,$(LIB_DIRS))
+CPPFLAGS ?= $(INC_FLAGS) -MMD -MP -w -Wextra -Wall --std=c++17
+LDFLAGS += $(LIB_FLAGS) $(LIBPATH_FLAGS)
 
 $(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
 	@printf " LD\t$@\n"
-	$(Q)$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	$(Q)$(CXX) $(OBJS) -o $@ $(LDFLAGS)
 
 # assembly
 $(BUILD_DIR)/%.o: %.s
